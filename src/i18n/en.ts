@@ -6,10 +6,12 @@
 export const i18n = {
   app: {
     name: 'Prompteer',
+    badge: 'v1.0 MVP',
     tagline: 'Zero-Friction Prompt Generator',
     description:
       'Transform your everyday goals into structured, fact-checked AI prompts routed to the best model.',
     github: 'GitHub',
+    footerDisclaimer: '100% Client-Side & Zero-Auth. No login, tracking, or backend database required.',
   },
   wizard: {
     stepIndicator: 'Step {current} of {total}',
@@ -49,13 +51,14 @@ export const i18n = {
       'Fill in 2 to 3 key details. Optional fields will automatically fall back to bracketed placeholders if left blank.',
     requiredTag: 'Required',
     optionalTag: 'Optional (defaults to placeholder)',
+    tipNotice: 'Leave optional fields empty if you want the prompt to include editable placeholders like [INSERT DATE].',
   },
   stepRigor: {
     title: 'Set Tone & Fact-Checking Rigor',
     subtitle:
       'Confirm how the AI should communicate and how strictly it should verify facts before generating.',
     toneSectionTitle: 'Tone of Voice',
-    toneSectionSubtitle: 'Select how your output should sound.',
+    toneSectionSubtitle: 'Select how your output should sound (pre-configured based on your objective).',
     tones: {
       formal: {
         label: 'Formal & Corporate',
@@ -131,4 +134,3 @@ export const i18n = {
 };
 
 export type I18nDictionary = typeof i18n;
-
