@@ -1,23 +1,24 @@
 'use client';
 
 import { Progress } from '@/components/ui/progress';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 
 interface StepperProps {
   currentStep: number;
   totalSteps?: number;
   onStepClick?: (step: number) => void;
+  i18n: I18nDictionary;
 }
 
-const STEP_LABELS = [
-  i18n.wizard.steps.category,
-  i18n.wizard.steps.objective,
-  i18n.wizard.steps.details,
-  i18n.wizard.steps.rigor,
-  i18n.wizard.steps.result,
-];
+export function Stepper({ currentStep, totalSteps = 5, onStepClick, i18n }: StepperProps) {
+  const stepLabels = [
+    i18n.wizard.steps.category,
+    i18n.wizard.steps.objective,
+    i18n.wizard.steps.details,
+    i18n.wizard.steps.rigor,
+    i18n.wizard.steps.result,
+  ];
 
-export function Stepper({ currentStep, totalSteps = 5, onStepClick }: StepperProps) {
   const progressPercent = Math.min(Math.round(((currentStep - 1) / (totalSteps - 1)) * 100), 100);
   const stepText = i18n.wizard.stepIndicator
     .replace('{current}', String(currentStep))
@@ -28,14 +29,14 @@ export function Stepper({ currentStep, totalSteps = 5, onStepClick }: StepperPro
       <div className="flex items-center justify-between text-xs sm:text-sm font-medium text-muted-foreground">
         <span className="font-semibold text-primary">{stepText}</span>
         <span className="hidden sm:inline-block">
-          {STEP_LABELS[currentStep - 1] || ''}
+          {stepLabels[currentStep - 1] || ''}
         </span>
       </div>
 
       <Progress value={progressPercent} className="h-2 w-full" />
 
       <div className="hidden sm:grid grid-cols-5 gap-2 pt-1 text-center text-xs">
-        {STEP_LABELS.map((label, index) => {
+        {stepLabels.map((label, index) => {
           const stepNumber = index + 1;
           const isCurrent = stepNumber === currentStep;
           const isCompleted = stepNumber < currentStep;
@@ -63,4 +64,3 @@ export function Stepper({ currentStep, totalSteps = 5, onStepClick }: StepperPro
     </div>
   );
 }
-

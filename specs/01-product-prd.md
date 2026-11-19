@@ -58,9 +58,22 @@ Users must confirm two explicit settings before generating the prompt:
   - For `Gemini` or prompts > 2000 chars: **"Copy Prompt & Open [Agent] ↗"** (copies to clipboard, triggers a toast notification, and opens the agent URL).
 - **Secondary Action:** **"Copy Prompt"** button/link with instant visual confirmation.
 
-## 4. Roadmap (Out of Scope for v1.0)
+## 4. Bilingual Support & Usability Test Features
 
-- **v1.1:** Bilingual support (`en` / `pt-BR`), additional categories (Career/Resume snippets, Study/Research), and URL state sharing.
+### A. Bilingual Localization (English & Brazilian Portuguese)
+- Seamless switching between English (`en`) and Brazilian Portuguese (`pt-BR`).
+- Language toggle available in the header (`EN | PT`), supporting URL query parameter `?lang=pt` or `?lang=en` (defaulting to `en`).
+- Localized UI dictionary (`src/i18n/pt.ts`) and localized prompt catalog (`src/core/catalog/pt.ts`) featuring natural Brazilian cultural conventions (e.g., Mercado Livre / OLX / Enjoei for classifieds; holiday schedule notices adapted to Brazilian workplace customs like *emenda de feriado*).
+- Generated prompts are rendered in the selected language with matching localized instructions for tone, factuality, and execution guidelines.
+
+### B. Usability Test Onboarding (?onboarding=1)
+- Triggered automatically via URL query parameter `?onboarding=1` or manually via a header button ("How it works?" / "Como funciona?").
+- **Onboarding Modal:** An interactive dialog clarifying the core paradigm of Prompteer.
+- **Persistent Information Banner:** Prominently explains that Prompteer is NOT an AI chat itself, but a prompt builder that structures, fact-checks, and routes optimized instructions to external AI models (ChatGPT, Claude, Gemini, Perplexity).
+
+## 5. Roadmap (Out of Scope for Current Version)
+
 - **v1.2:** Local history & favorites via `localStorage`.
+- **v1.3:** Additional categories (Career/Resume snippets, Study/Academic Research) and full URL state sharing.
 - **v2.0:** Decoupled `@prompteer/core` NPM package + interactive CLI (`npx prompteer`) for developers.
 - **v3.0:** Chrome/Edge Side Panel browser extension + lightweight backend for community-submitted templates.

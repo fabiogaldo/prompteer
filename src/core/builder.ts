@@ -1,5 +1,5 @@
 /**
- * Pure prompt generation engine.
+ * Pure prompt generation engine with bilingual support.
  * Pure TypeScript only — Zero dependencies on React, Next.js, or DOM APIs.
  */
 
@@ -7,13 +7,29 @@ import {
   BuildPromptParams,
   BuildPromptResult,
   InputField,
+  Locale,
   RigorLevel,
   Tone,
 } from './types';
-import { getObjectiveById } from './catalog/en';
+import { getObjectiveById } from './catalog/index';
 import { getAgent, resolveAgentAction } from './agents';
 
-export function getToneInstructions(tone: Tone): string {
+export function getToneInstructions(tone: Tone, locale: Locale = 'en'): string {
+  if (locale === 'pt') {
+    switch (tone) {
+      case 'formal':
+        return 'Mantenha um tom formal, profissional, polido e corporativo do início ao fim.';
+      case 'direct':
+        return 'Seja direto, conciso e extremamente claro. Evite rodeios, palavras vazias ou introduções longas.';
+      case 'friendly':
+        return 'Utilize um tom caloroso, acolhedor, empático e amigável.';
+      case 'persuasive':
+        return 'Elabore um texto persuasivo e envolvente, que destaque o valor prático e estimule uma ação imediata.';
+      default:
+        return 'Mantenha um tom claro e engajador adequado ao público-alvo.';
+    }
+  }
+
   switch (tone) {
     case 'formal':
       return 'Maintain a formal, professional, polished, and corporate tone throughout.';
@@ -28,7 +44,36 @@ export function getToneInstructions(tone: Tone): string {
   }
 }
 
-export function getFactCheckInstructions(rigor: RigorLevel): string {
+export function getFactCheckInstructions(rigor: RigorLevel, locale: Locale = 'en'): string {
+  if (locale === 'pt') {
+    switch (rigor) {
+      case 'strict':
+        return [
+          '### INSTRUÇÕES CRÍTICAS DE VERIFICAÇÃO DE FATOS E COERÊNCIA',
+          '- Verifique todas as premissas factuais antes de responder.',
+          '- Aponte eventuais inconsistências cronológicas ou contextuais (ex.: datas incompatíveis com dias da semana ou exigências conflitantes).',
+          '- Não invente, não presuma e não extrapole informações além do que foi expressamente fornecido no contexto do prompt.',
+          '- Se uma afirmação não puder ser confirmada ou faltarem dados essenciais, declare explicitamente a incerteza e solicite esclarecimento em vez de alucinar ou adivinhar.',
+          '- Baseie-se estritamente em fatos verificados e evite especulações desmedidas.',
+        ].join('\n');
+      case 'balanced':
+        return [
+          '### DIRETRIZES DE PRECISÃO E FACTUALIDADE',
+          '- Siga rigorosamente os fatos, restrições e dados fornecidos acima.',
+          '- Não invente dados não verificados, nomes, datas ou especificações.',
+          '- Mantenha uma representação equilibrada e objetiva das informações fornecidas sem floreios desnecessários.',
+        ].join('\n');
+      case 'creative':
+        return [
+          '### DIRETRIZES DE CRIATIVIDADE',
+          '- Você tem total liberdade criativa para sugerir ideias, criar metáforas envolventes e enriquecer a narrativa com detalhes imaginativos.',
+          '- Sinta-se livre para propor ângulos originais, descrições vívidas e narrativas envolventes, respeitando o propósito principal.',
+        ].join('\n');
+      default:
+        return '';
+    }
+  }
+
   switch (rigor) {
     case 'strict':
       return [
@@ -76,22 +121,32 @@ export function resolveFieldValues(
 }
 
 export function buildPrompt(params: BuildPromptParams): BuildPromptResult {
-  const objective = getObjectiveById(params.categoryId, params.objectiveId);
+  const locale = params.locale || 'en';
+  const objective = getObjectiveById(params.categoryId, params.objectiveId, locale);
   if (!objective) {
     throw new Error(
-      `Objective "${params.objectiveId}" not found in category "${params.categoryId}".`
+      `Objective "${params.objectiveId}" not found in category "${params.categoryId}" for locale "${locale}".`
     );
   }
 
   const sanitizedValues = resolveFieldValues(objective.fields, params.fieldValues);
   const coreBody = objective.template(sanitizedValues, params.tone, params.rigor);
-  const toneInstruction = getToneInstructions(params.tone);
-  const factCheckInstruction = getFactCheckInstructions(params.rigor);
+  const toneInstruction = getToneInstructions(params.tone, locale);
+  const factCheckInstruction = getFactCheckInstructions(params.rigor, locale);
+
+  const toneHeader =
+    locale === 'pt' ? '### TOM E ESTILO DE COMUNICAÇÃO' : '### TONE & COMMUNICATION STYLE';
+  const executionHeader =
+    locale === 'pt' ? '### DIRETRIZES DE EXECUÇÃO' : '### EXECUTION GUIDELINES';
+  const executionText =
+    locale === 'pt'
+      ? 'Não inclua conversas iniciais ou preâmbulos vazios (como "Claro! Aqui está o seu texto..."). Entregue as seções solicitadas diretamente em formato markdown limpo.'
+      : 'Do not include polite meta-chatter or preamble (such as "Sure, here is your draft..."). Deliver the requested sections directly in clean markdown format.';
 
   const sections: string[] = [
     coreBody,
     '',
-    '### TONE & COMMUNICATION STYLE',
+    toneHeader,
     toneInstruction,
   ];
 
@@ -99,11 +154,7 @@ export function buildPrompt(params: BuildPromptParams): BuildPromptResult {
     sections.push('', factCheckInstruction);
   }
 
-  sections.push(
-    '',
-    '### EXECUTION GUIDELINES',
-    'Do not include polite meta-chatter or preamble (such as "Sure, here is your draft..."). Deliver the requested sections directly in clean markdown format.'
-  );
+  sections.push('', executionHeader, executionText);
 
   const fullPrompt = sections.join('\n');
   const agentInfo = getAgent(objective.recommendedAgent);
@@ -119,4 +170,3 @@ export function buildPrompt(params: BuildPromptParams): BuildPromptResult {
     charCount: fullPrompt.length,
   };
 }
-

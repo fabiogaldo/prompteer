@@ -5,13 +5,19 @@ import {
   getToneInstructions,
   resolveFieldValues,
 } from '../builder';
-import { CATALOG_EN, getCategoryById, getObjectiveById } from '../catalog/en';
+import {
+  CATALOG_EN,
+  CATALOG_PT,
+  getCatalog,
+  getCategoryById,
+  getObjectiveById,
+} from '../catalog/index';
 import { AGENTS, getAgent, MAX_URL_QUERY_LENGTH, resolveAgentAction } from '../agents';
 import { AgentId, BuildPromptParams, InputField } from '../types';
 
 describe('Prompteer Core Engine', () => {
-  describe('Catalog Integrity', () => {
-    it('contains exactly 3 categories with 2 objectives each', () => {
+  describe('Catalog Integrity (English & Portuguese)', () => {
+    it('contains exactly 3 categories with 2 objectives each in English', () => {
       expect(CATALOG_EN).toHaveLength(3);
       const totalObjectives = CATALOG_EN.reduce(
         (sum, cat) => sum + cat.objectives.length,
@@ -20,39 +26,77 @@ describe('Prompteer Core Engine', () => {
       expect(totalObjectives).toBe(6);
     });
 
-    it('each category has valid properties and at least one example use case', () => {
-      for (const cat of CATALOG_EN) {
-        expect(cat.id).toBeDefined();
-        expect(cat.title).toBeTruthy();
-        expect(cat.description).toBeTruthy();
-        expect(cat.exampleUseCases.length).toBeGreaterThan(0);
+    it('contains exactly 3 categories with 2 objectives each in Portuguese', () => {
+      expect(CATALOG_PT).toHaveLength(3);
+      const totalObjectives = CATALOG_PT.reduce(
+        (sum, cat) => sum + cat.objectives.length,
+        0
+      );
+      expect(totalObjectives).toBe(6);
+    });
+
+    it('getCatalog returns appropriate catalog per locale', () => {
+      expect(getCatalog('en')).toBe(CATALOG_EN);
+      expect(getCatalog('pt')).toBe(CATALOG_PT);
+    });
+
+    it('each category in both catalogs has valid properties and examples', () => {
+      for (const catalog of [CATALOG_EN, CATALOG_PT]) {
+        for (const cat of catalog) {
+          expect(cat.id).toBeDefined();
+          expect(cat.title).toBeTruthy();
+          expect(cat.description).toBeTruthy();
+          expect(cat.exampleUseCases.length).toBeGreaterThan(0);
+        }
       }
     });
 
-    it('each objective has valid fields with fallback placeholders and template functions', () => {
-      for (const cat of CATALOG_EN) {
-        for (const obj of cat.objectives) {
-          expect(obj.id).toBeTruthy();
-          expect(obj.categoryId).toBe(cat.id);
-          expect(obj.outputPreviewSnippet).toBeTruthy();
-          expect(obj.recommendedAgent).toBeTruthy();
-          expect(AGENTS[obj.recommendedAgent]).toBeDefined();
-          expect(obj.fields.length).toBeGreaterThanOrEqual(2);
-          for (const field of obj.fields) {
-            expect(field.id).toBeTruthy();
-            expect(field.label).toBeTruthy();
-            expect(field.fallbackPlaceholder).toMatch(/^\[.+\]$/);
+    it('Portuguese catalog adapts examples to Brazilian marketplace platforms', () => {
+      const salesCat = CATALOG_PT.find((c) => c.id === 'sales');
+      expect(salesCat).toBeDefined();
+      const hasBrazilianMarketplaces = salesCat?.exampleUseCases.some((example) =>
+        /Mercado Livre|OLX|Enjoei/i.test(example)
+      );
+      expect(hasBrazilianMarketplaces).toBe(true);
+
+      const productObj = salesCat?.objectives.find((o) => o.id === 'product-listing');
+      expect(productObj?.description).toMatch(/Mercado Livre|OLX|Enjoei/i);
+    });
+
+    it('each objective in both catalogs has valid fields with fallback placeholders', () => {
+      for (const catalog of [CATALOG_EN, CATALOG_PT]) {
+        for (const cat of catalog) {
+          for (const obj of cat.objectives) {
+            expect(obj.id).toBeTruthy();
+            expect(obj.categoryId).toBe(cat.id);
+            expect(obj.outputPreviewSnippet).toBeTruthy();
+            expect(obj.recommendedAgent).toBeTruthy();
+            expect(AGENTS[obj.recommendedAgent]).toBeDefined();
+            expect(obj.fields.length).toBeGreaterThanOrEqual(2);
+            for (const field of obj.fields) {
+              expect(field.id).toBeTruthy();
+              expect(field.label).toBeTruthy();
+              expect(field.fallbackPlaceholder).toMatch(/^\[.+\]$/);
+            }
           }
         }
       }
     });
 
-    it('getCategoryById and getObjectiveById lookup functions work correctly', () => {
-      expect(getCategoryById('corporate')?.id).toBe('corporate');
+    it('getCategoryById and getObjectiveById lookup functions work correctly across locales', () => {
+      expect(getCategoryById('corporate', 'en')?.id).toBe('corporate');
+      expect(getCategoryById('corporate', 'pt')?.id).toBe('corporate');
+      expect(getCategoryById('corporate', 'pt')?.title).toBe('Corporativo & Trabalho');
       expect(getCategoryById('nonexistent')).toBeUndefined();
 
-      expect(getObjectiveById('corporate', 'holiday-announcement')?.id).toBe(
+      expect(getObjectiveById('corporate', 'holiday-announcement', 'en')?.id).toBe(
         'holiday-announcement'
+      );
+      expect(getObjectiveById('corporate', 'holiday-announcement', 'pt')?.id).toBe(
+        'holiday-announcement'
+      );
+      expect(getObjectiveById('corporate', 'holiday-announcement', 'pt')?.title).toBe(
+        'Aviso de Feriado / Emenda de Escala'
       );
       expect(getObjectiveById('corporate', 'invalid-obj')).toBeUndefined();
       expect(getObjectiveById('invalid-cat', 'holiday-announcement')).toBeUndefined();
@@ -90,20 +134,20 @@ describe('Prompteer Core Engine', () => {
     it('falls back to bracketed placeholders when fields are empty, whitespace, or undefined', () => {
       const values = {
         holidayName: '   ',
-        // dates is omitted
       };
       const result = resolveFieldValues(sampleFields, values);
       expect(result.holidayName).toBe('[INSERT HOLIDAY OR OCCASION]');
       expect(result.dates).toBe('[INSERT DATES & OPERATING HOURS]');
     });
 
-    it('buildPrompt uses bracketed fallbacks when user submits blank inputs', () => {
+    it('buildPrompt uses bracketed fallbacks when user submits blank inputs (English)', () => {
       const params: BuildPromptParams = {
         categoryId: 'corporate',
         objectiveId: 'holiday-announcement',
         fieldValues: {},
         tone: 'formal',
         rigor: 'balanced',
+        locale: 'en',
       };
       const result = buildPrompt(params);
       expect(result.prompt).toContain('[INSERT HOLIDAY OR OCCASION]');
@@ -112,38 +156,61 @@ describe('Prompteer Core Engine', () => {
         '[INSERT EMERGENCY CONTACT OR ON-CALL ESCALATION PATH]'
       );
     });
+
+    it('buildPrompt uses Portuguese bracketed fallbacks when user submits blank inputs (Portuguese)', () => {
+      const params: BuildPromptParams = {
+        categoryId: 'corporate',
+        objectiveId: 'holiday-announcement',
+        fieldValues: {},
+        tone: 'formal',
+        rigor: 'balanced',
+        locale: 'pt',
+      };
+      const result = buildPrompt(params);
+      expect(result.prompt).toContain('[INSERIR FERIADO OU OCASIÃO]');
+      expect(result.prompt).toContain('[INSERIR DATAS E HORÁRIO DE RETORNO]');
+      expect(result.prompt).toContain('[INSERIR CONTATO DE PLANTÃO OU ESCALONAMENTO]');
+    });
   });
 
-  describe('Tone Configuration', () => {
-    it('returns appropriate tone instruction for each tone', () => {
-      expect(getToneInstructions('formal')).toContain('formal, professional');
-      expect(getToneInstructions('direct')).toContain('concise, direct');
-      expect(getToneInstructions('friendly')).toContain('warm, welcoming');
-      expect(getToneInstructions('persuasive')).toContain('compelling, high-converting');
+  describe('Tone Configuration & Localization', () => {
+    it('returns appropriate tone instruction for each tone in English', () => {
+      expect(getToneInstructions('formal', 'en')).toContain('formal, professional');
+      expect(getToneInstructions('direct', 'en')).toContain('concise, direct');
+      expect(getToneInstructions('friendly', 'en')).toContain('warm, welcoming');
+      expect(getToneInstructions('persuasive', 'en')).toContain('compelling, high-converting');
     });
 
-    it('injects tone instructions into generated prompt', () => {
+    it('returns appropriate tone instruction for each tone in Portuguese', () => {
+      expect(getToneInstructions('formal', 'pt')).toContain('tom formal, profissional');
+      expect(getToneInstructions('direct', 'pt')).toContain('direto, conciso e extremamente claro');
+      expect(getToneInstructions('friendly', 'pt')).toContain('caloroso, acolhedor');
+      expect(getToneInstructions('persuasive', 'pt')).toContain('persuasivo e envolvente');
+    });
+
+    it('injects localized tone instructions and headers into Portuguese prompt', () => {
       const params: BuildPromptParams = {
         categoryId: 'sales',
         objectiveId: 'freelance-pitch',
         fieldValues: {
-          serviceType: 'Mobile App UX Audits',
-          targetClient: 'Fintech Startups',
+          serviceType: 'Auditoria de Performance Web',
+          targetClient: 'Lojas Shopify no Brasil',
         },
         tone: 'friendly',
         rigor: 'balanced',
+        locale: 'pt',
       };
       const result = buildPrompt(params);
-      expect(result.prompt).toContain('### TONE & COMMUNICATION STYLE');
-      expect(result.prompt).toContain(
-        'Use a warm, welcoming, empathetic, and approachable tone of voice.'
-      );
+      expect(result.prompt).toContain('### TOM E ESTILO DE COMUNICAÇÃO');
+      expect(result.prompt).toContain('Utilize um tom caloroso, acolhedor, empático e amigável.');
+      expect(result.prompt).toContain('### DIRETRIZES DE EXECUÇÃO');
+      expect(result.prompt).toContain('Não inclua conversas iniciais ou preâmbulos vazios');
     });
   });
 
-  describe('Fact-Checking & Rigor Injection', () => {
-    it('generates strict instructions warning against hallucinations and requiring premise verification', () => {
-      const strictInstructions = getFactCheckInstructions('strict');
+  describe('Fact-Checking & Rigor Injection (English & Portuguese)', () => {
+    it('generates English strict instructions warning against hallucinations', () => {
+      const strictInstructions = getFactCheckInstructions('strict', 'en');
       expect(strictInstructions).toContain(
         'CRITICAL FACT-CHECKING & VERIFICATION INSTRUCTIONS'
       );
@@ -153,36 +220,46 @@ describe('Prompteer Core Engine', () => {
       expect(strictInstructions).toContain('explicitly state the uncertainty');
     });
 
-    it('generates balanced factuality instructions', () => {
-      const balancedInstructions = getFactCheckInstructions('balanced');
-      expect(balancedInstructions).toContain('FACTUALITY & ACCURACY GUIDELINES');
-      expect(balancedInstructions).toContain(
-        'Adhere strictly to the facts, constraints, and details provided above'
+    it('generates Portuguese strict instructions warning against hallucinations and requiring premise verification', () => {
+      const strictInstructions = getFactCheckInstructions('strict', 'pt');
+      expect(strictInstructions).toContain(
+        'INSTRUÇÕES CRÍTICAS DE VERIFICAÇÃO DE FATOS E COERÊNCIA'
       );
+      expect(strictInstructions).toContain('Verifique todas as premissas factuais antes de responder');
+      expect(strictInstructions).toContain('inconsistências cronológicas ou contextuais');
+      expect(strictInstructions).toContain('Não invente, não presuma e não extrapole');
+      expect(strictInstructions).toContain('solicite esclarecimento em vez de alucinar ou adivinhar');
     });
 
-    it('generates creative guidelines for creative rigor', () => {
-      const creativeInstructions = getFactCheckInstructions('creative');
-      expect(creativeInstructions).toContain('CREATIVE GUIDELINES');
-      expect(creativeInstructions).toContain('brainstorm, embellish, and add creative flair');
+    it('generates Portuguese balanced factuality instructions', () => {
+      const balancedInstructions = getFactCheckInstructions('balanced', 'pt');
+      expect(balancedInstructions).toContain('DIRETRIZES DE PRECISÃO E FACTUALIDADE');
+      expect(balancedInstructions).toContain('Siga rigorosamente os fatos, restrições e dados');
     });
 
-    it('injects strict fact-checking section into the built prompt when rigor is strict', () => {
+    it('generates Portuguese creative guidelines', () => {
+      const creativeInstructions = getFactCheckInstructions('creative', 'pt');
+      expect(creativeInstructions).toContain('DIRETRIZES DE CRIATIVIDADE');
+      expect(creativeInstructions).toContain('total liberdade criativa para sugerir ideias');
+    });
+
+    it('injects strict fact-checking section into the built prompt when rigor is strict (Portuguese)', () => {
       const params: BuildPromptParams = {
         categoryId: 'corporate',
         objectiveId: 'holiday-announcement',
         fieldValues: {
-          holidayName: 'Thanksgiving',
-          dates: 'Thursday, Nov 26 - Friday, Nov 27',
+          holidayName: 'Carnaval',
+          dates: 'Segunda (20/02) e Terça (21/02)',
         },
         tone: 'formal',
         rigor: 'strict',
+        locale: 'pt',
       };
       const result = buildPrompt(params);
       expect(result.prompt).toContain(
-        '### CRITICAL FACT-CHECKING & VERIFICATION INSTRUCTIONS'
+        '### INSTRUÇÕES CRÍTICAS DE VERIFICAÇÃO DE FATOS E COERÊNCIA'
       );
-      expect(result.prompt).toContain('chronological or contextual inconsistencies');
+      expect(result.prompt).toContain('inconsistências cronológicas ou contextuais');
     });
   });
 

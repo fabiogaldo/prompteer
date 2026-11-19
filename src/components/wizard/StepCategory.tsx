@@ -2,17 +2,23 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CATALOG_EN } from '@/core/catalog/en';
 import { Category } from '@/core/types';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 import { Briefcase, ShoppingBag, Palette, CheckCircle2 } from 'lucide-react';
 
 interface StepCategoryProps {
+  categories: Category[];
   selectedCategoryId: string;
   onSelectCategory: (category: Category) => void;
+  i18n: I18nDictionary;
 }
 
-export function StepCategory({ selectedCategoryId, onSelectCategory }: StepCategoryProps) {
+export function StepCategory({
+  categories,
+  selectedCategoryId,
+  onSelectCategory,
+  i18n,
+}: StepCategoryProps) {
   const getIcon = (iconName: string) => {
     switch (iconName) {
       case 'Briefcase':
@@ -38,7 +44,7 @@ export function StepCategory({ selectedCategoryId, onSelectCategory }: StepCateg
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {CATALOG_EN.map((category) => {
+        {categories.map((category) => {
           const isSelected = category.id === selectedCategoryId;
 
           return (
@@ -93,4 +99,3 @@ export function StepCategory({ selectedCategoryId, onSelectCategory }: StepCateg
     </div>
   );
 }
-

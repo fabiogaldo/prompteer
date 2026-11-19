@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RigorLevel, Tone } from '@/core/types';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -18,18 +18,19 @@ interface StepRigorProps {
   selectedRigor: RigorLevel;
   onSelectTone: (tone: Tone) => void;
   onSelectRigor: (rigor: RigorLevel) => void;
+  i18n: I18nDictionary;
 }
 
-const TONE_OPTIONS: { id: Tone; key: keyof typeof i18n.stepRigor.tones }[] = [
+const TONE_KEYS: { id: Tone; key: keyof I18nDictionary['stepRigor']['tones'] }[] = [
   { id: 'formal', key: 'formal' },
   { id: 'direct', key: 'direct' },
   { id: 'friendly', key: 'friendly' },
   { id: 'persuasive', key: 'persuasive' },
 ];
 
-const RIGOR_OPTIONS: {
+const RIGOR_KEYS: {
   id: RigorLevel;
-  key: keyof typeof i18n.stepRigor.rigorLevels;
+  key: keyof I18nDictionary['stepRigor']['rigorLevels'];
   icon: typeof Sparkles;
 }[] = [
   { id: 'creative', key: 'creative', icon: Sparkles },
@@ -42,6 +43,7 @@ export function StepRigor({
   selectedRigor,
   onSelectTone,
   onSelectRigor,
+  i18n,
 }: StepRigorProps) {
   return (
     <div className="space-y-8">
@@ -67,7 +69,7 @@ export function StepRigor({
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {TONE_OPTIONS.map((item) => {
+          {TONE_KEYS.map((item) => {
             const toneData = i18n.stepRigor.tones[item.key];
             const isSelected = selectedTone === item.id;
 
@@ -111,7 +113,7 @@ export function StepRigor({
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {RIGOR_OPTIONS.map((item) => {
+          {RIGOR_KEYS.map((item) => {
             const rigorData = i18n.stepRigor.rigorLevels[item.key];
             const isSelected = selectedRigor === item.id;
             const Icon = item.icon;

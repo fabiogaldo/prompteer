@@ -3,25 +3,23 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Objective } from '@/core/types';
-import { getCategoryById } from '@/core/catalog/en';
 import { getAgent } from '@/core/agents';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 
 interface StepObjectiveProps {
-  categoryId: string;
+  objectives: Objective[];
   selectedObjectiveId: string;
   onSelectObjective: (objective: Objective) => void;
+  i18n: I18nDictionary;
 }
 
 export function StepObjective({
-  categoryId,
+  objectives,
   selectedObjectiveId,
   onSelectObjective,
+  i18n,
 }: StepObjectiveProps) {
-  const category = getCategoryById(categoryId);
-  const objectives = category?.objectives || [];
-
   return (
     <div className="space-y-6">
       <div className="space-y-1.5 text-center sm:text-left">
@@ -86,4 +84,3 @@ export function StepObjective({
     </div>
   );
 }
-

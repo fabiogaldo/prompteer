@@ -3,7 +3,7 @@
  * Pure TypeScript — No hardcoded UI strings inside JSX components.
  */
 
-export const i18n = {
+export const en = {
   app: {
     name: 'Prompteer',
     badge: 'v1.0 MVP',
@@ -12,6 +12,33 @@ export const i18n = {
       'Transform your everyday goals into structured, fact-checked AI prompts routed to the best model.',
     github: 'GitHub',
     footerDisclaimer: '100% Client-Side & Zero-Auth. No login, tracking, or backend database required.',
+  },
+  header: {
+    languageLabel: 'Language',
+    howItWorks: 'How it works?',
+  },
+  banner: {
+    title: 'How Prompteer works:',
+    text: 'Prompteer is NOT an AI chat. It is a prompt engineering tool that constructs structured, fact-checked instructions for you to send to leading external AI models (ChatGPT, Claude, Gemini, Perplexity).',
+    learnMore: 'Learn more',
+  },
+  onboardingModal: {
+    title: 'How Prompteer Works',
+    subtitle: 'Zero-friction, intention-based prompt generation',
+    step1Title: '1. Select Your Goal',
+    step1Desc:
+      'Pick from curated real-world contexts across workplace announcements, sales listings, or campaign visuals.',
+    step2Title: '2. Provide Quick Details & Fact Rigor',
+    step2Desc:
+      'Enter 2-3 key facts and choose your factuality rigor to prevent AI hallucinations and premise errors.',
+    step3Title: '3. Open Directly in the Best AI',
+    step3Desc:
+      'Prompteer assembles an optimized prompt and copies or deep-links it directly into ChatGPT, Claude, Gemini, or Perplexity.',
+    coreNoticeTitle: 'Core Concept:',
+    coreNoticeBody:
+      'Prompteer is not an AI chatbot itself. It crafts structured, fact-checked instructions that you open directly in top external AI tools with one click.',
+    dismissButton: "Got it, let's start!",
+    closeAriaLabel: 'Close',
   },
   wizard: {
     stepIndicator: 'Step {current} of {total}',
@@ -51,14 +78,16 @@ export const i18n = {
       'Fill in 2 to 3 key details. Optional fields will automatically fall back to bracketed placeholders if left blank.',
     requiredTag: 'Required',
     optionalTag: 'Optional (defaults to placeholder)',
-    tipNotice: 'Leave optional fields empty if you want the prompt to include editable placeholders like [INSERT DATE].',
+    tipNotice:
+      'Leave optional fields empty if you want the prompt to include editable placeholders like [INSERT DATE].',
   },
   stepRigor: {
     title: 'Set Tone & Fact-Checking Rigor',
     subtitle:
       'Confirm how the AI should communicate and how strictly it should verify facts before generating.',
     toneSectionTitle: 'Tone of Voice',
-    toneSectionSubtitle: 'Select how your output should sound (pre-configured based on your objective).',
+    toneSectionSubtitle:
+      'Select how your output should sound (pre-configured based on your objective).',
     tones: {
       formal: {
         label: 'Formal & Corporate',
@@ -133,4 +162,5 @@ export const i18n = {
   },
 };
 
-export type I18nDictionary = typeof i18n;
+export const i18n = en;
+export type I18nDictionary = typeof en;

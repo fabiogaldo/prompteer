@@ -3,6 +3,8 @@
  * Pure TypeScript only — Zero dependencies on React, Next.js, or DOM APIs.
  */
 
+export type Locale = 'en' | 'pt';
+
 export type Tone = 'formal' | 'direct' | 'friendly' | 'persuasive';
 
 export type RigorLevel = 'creative' | 'balanced' | 'strict';
@@ -58,6 +60,7 @@ export interface BuildPromptParams {
   fieldValues: Record<string, string>;
   tone: Tone;
   rigor: RigorLevel;
+  locale?: Locale;
 }
 
 export interface BuildPromptResult {
@@ -68,4 +71,3 @@ export interface BuildPromptResult {
   targetUrl: string;
   charCount: number;
 }
-

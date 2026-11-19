@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BuildPromptResult } from '@/core/types';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 import { toast } from 'sonner';
 import {
   Copy,
@@ -20,9 +20,10 @@ interface StepResultProps {
   result: BuildPromptResult;
   onEdit: () => void;
   onStartOver: () => void;
+  i18n: I18nDictionary;
 }
 
-export function StepResult({ result, onEdit, onStartOver }: StepResultProps) {
+export function StepResult({ result, onEdit, onStartOver, i18n }: StepResultProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyOnly = async () => {
@@ -199,4 +200,3 @@ export function StepResult({ result, onEdit, onStartOver }: StepResultProps) {
     </div>
   );
 }
-

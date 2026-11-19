@@ -4,16 +4,22 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Objective } from '@/core/types';
-import { i18n } from '@/i18n/en';
+import { I18nDictionary } from '@/i18n/index';
 import { Info } from 'lucide-react';
 
 interface StepDetailsProps {
   objective: Objective;
   fieldValues: Record<string, string>;
   onChangeField: (fieldId: string, value: string) => void;
+  i18n: I18nDictionary;
 }
 
-export function StepDetails({ objective, fieldValues, onChangeField }: StepDetailsProps) {
+export function StepDetails({
+  objective,
+  fieldValues,
+  onChangeField,
+  i18n,
+}: StepDetailsProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-1.5 text-center sm:text-left">
@@ -81,4 +87,3 @@ export function StepDetails({ objective, fieldValues, onChangeField }: StepDetai
     </div>
   );
 }
-
